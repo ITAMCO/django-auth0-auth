@@ -23,17 +23,20 @@ def get_readme():
     return ''
 
 setup(
-    name = 'django-auth0-auth',
-    version = __import__('auth0_auth').get_version().replace(' ', '-'),
-    url = 'https://bitbucket.org/megaman821/django-auth0-auth',
-    author = 'Jason Christa',
-    author_email = 'jason@zeitcode.com',
-    description = 'Authenticated users using Auth0.',
-    long_description = get_readme(),
-    packages = find_packages(exclude=['tests']),
-    include_package_data = True,
-    install_requires = read_file('requirements.txt'),
-    classifiers = [
+    name='django2-auth0-auth',
+    version=__import__('auth0_auth').get_version().replace(' ', '-'),
+    url='https://github.com/ITAMCO/django2-auth0-auth/',
+    author='Jason Christa',
+    author_email='jason@zeitcode.com',
+    maintainer='Kieran Evans',
+    maintainer_email='keyz182@gmail.com',
+    description='Authenticated users using Auth0.',
+    long_description=get_readme(),
+    long_description_content_type='text/markdown',
+    packages=find_packages(exclude=['tests']),
+    include_package_data=True,
+    install_requires=read_file('requirements.txt'),
+    classifiers=[
         'Environment :: Web Environment',
         'License :: OSI Approved :: BSD License',
         'Framework :: Django',
