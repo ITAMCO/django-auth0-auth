@@ -56,6 +56,7 @@ class Auth0Backend(object):
         self.request.session['auth'] = resp
 
         jwt = decode_jwt(resp['id_token'])
+        self.request.session['jwt'] = jwt
 
         # Add a little buffer
         expires_at = datetime.datetime.now() + datetime.timedelta(seconds=resp['expires_in']*0.8)
