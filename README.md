@@ -76,7 +76,7 @@ OAuth scope parameter.
 
 ### AUTH0_RESPONSE_TYPE
 
-**default:** `'token'`
+**default:** `'code'`
 OAuth response type parameter.
 
 
