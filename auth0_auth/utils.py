@@ -16,6 +16,7 @@ logger = logging.getLogger("auth0_auth")
 
 DOMAIN = getattr(settings, "AUTH0_DOMAIN")
 SCOPE = getattr(settings, "AUTH0_SCOPE", "openid email")
+VERIFY_AT_HASH = getattr(settings, "AUTH0_VERIFY_AT_HASH", True)
 RESPONSE_TYPE = getattr(settings, "AUTH0_RESPONSE_TYPE", "code")
 CLIENT_ID = getattr(settings, "AUTH0_CLIENT_ID")
 CLIENT_SECRET = getattr(settings, "AUTH0_CLIENT_SECRET")
@@ -51,8 +52,13 @@ def decode_jwt(id_token):
         url = 'https://{domain}/.well-known/jwks.json'.format(domain=DOMAIN)
         jwks = requests.get(url).json()
 
-        return jwt.decode(id_token, jwks, algorithms=['RS256'], audience=CLIENT_ID, issuer=issuer)
-    except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError, )  as e:
+        return jwt.decode(id_token,
+                          jwks,
+                          algorithms=['RS256'],
+                          audience=CLIENT_ID,
+                          issuer=issuer,
+                          options={'verify_at_hash': VERIFY_AT_HASH})
+    except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError,) as e:
         logger.debug(
             "Could not retrieve sub. Token validation error, {}".format(str(e))
         )
