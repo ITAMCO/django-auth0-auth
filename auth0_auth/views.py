@@ -1,3 +1,5 @@
+import requests
+
 from .backends import Auth0Backend
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout as auth_logout
@@ -17,7 +19,6 @@ except ImportError:
     from urllib.parse import urlparse
 import uuid
 
-
 logger = logging.getLogger('auth0_auth')
 
 
@@ -30,6 +31,7 @@ def auth(request):
         redirect_uri = '{}?{}={}'.format(redirect_uri, REDIRECT_FIELD_NAME, redirect_to)
     state = str(uuid.uuid4())
     request.session['state'] = state
+    request.session['redirect_uri'] = redirect_uri
     login_url = backend.login_url(
         redirect_uri=redirect_uri,
         state=state,
@@ -52,13 +54,14 @@ def logout(request):
 @never_cache
 @csrf_exempt
 def callback(request):
-    backend = Auth0Backend()
+    backend = Auth0Backend(request)
     original_state = request.session.get('state')
+    redirect_uri = request.session.get('redirect_uri')
     state = request.POST.get('state')
     if original_state == state:
-        token = request.POST.get('id_token')
-        logger.debug('Token {} received'.format(token))
-        user = backend.authenticate(token=token)
+        code = request.POST.get('code')
+        logger.debug('Code {} received'.format(code))
+        user = backend.authenticate(code=code, redirect_uri=redirect_uri)
         if user is not None:
             login(request, user)
             return HttpResponseRedirect(get_login_success_url(request))

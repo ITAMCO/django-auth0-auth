@@ -1,5 +1,4 @@
-from base64 import urlsafe_b64encode
-from hashlib import sha1
+import datetime
 from uuid import uuid4
 
 from django.conf import settings
@@ -10,7 +9,7 @@ from .utils import (
     get_login_url,
     get_logout_url,
     is_email_verified_from_token,
-    get_sub_from_token)
+    get_sub_from_token, decode_jwt, get_jwt)
 
 try:
     from django.contrib.auth import get_user_model
@@ -36,8 +35,9 @@ class Auth0Backend(object):
     supports_inactive_user = True
     supports_object_permissions = False
 
-    def __init__(self):
+    def __init__(self, request=None):
         self.User = get_user_model()
+        self.request = request
 
     def login_url(self, redirect_uri, state):
         return get_login_url(redirect_uri=redirect_uri, state=state)
@@ -45,17 +45,30 @@ class Auth0Backend(object):
     def logout_url(self, redirect_uri):
         return get_logout_url(redirect_uri=redirect_uri)
 
-    def authenticate(self, token=None, **kwargs):
-        if token is None:
+    def authenticate(self, code=None, redirect_uri=None, **kwargs):
+        if code is None:
             return None
 
-        email = get_email_from_token(token=token)
-        sub = get_sub_from_token(token=token)
+        if redirect_uri is None:
+            return None
+
+        resp = get_jwt(code, redirect_uri)
+        self.request.session['auth'] = resp
+
+        jwt = decode_jwt(resp['id_token'])
+
+        # Add a little buffer
+        expires_at = datetime.datetime.now() - datetime.timedelta(seconds=resp['expires_in']*0.8)
+
+        self.request.session['expires'] = expires_at.isoformat()
+
+        email = get_email_from_token(jwt)
+        sub = get_sub_from_token(jwt)
 
         if email is None:
             return None
 
-        email_verified = is_email_verified_from_token(token=token)
+        email_verified = is_email_verified_from_token(jwt)
 
         if not email_verified:
             return None

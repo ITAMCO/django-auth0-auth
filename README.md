@@ -17,11 +17,29 @@ AUTHENTICATION_BACKENDS = (
 )
 ```
 
+Add the `Auth0Middleware` to your `MIDDLEWARE` setting:
+
+
+```python
+MIDDLEWARE = [
+    ...
+    'auth0_auth.middleware.Auth0Middleware'
+]
+```
+
 Edit your `urls.py` to include:
 
 ```python
+from django.views.generic import RedirectView
+```
+
+```python
 urlpatterns = [
-    url(r'^auth0/', include('auth0_auth.urls')),
+    ...
+    #Add this BEFORE you include the admin urls, so admin login will redirect to auth0 login
+    path('admin/login/', RedirectView.as_view(pattern_name='auth0_login', permanent=False, query_string=True)),
+    #Add the auth0 urls
+    path('auth0/', include('auth0_auth.urls')),
     ...
 ]
 ```
@@ -67,54 +85,6 @@ OAuth response type parameter.
 **default:** `True`
 Allow creation of new users after successful authentication.
 
-
-Lock Signin
-------------
-To log in using the JavaScript based **Lock** dialog, add the following to your project.
-
-
-Add the `auth0` context processor to the `TEMPLATES` options.
-
-```python
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'OPTIONS': {
-            'context_processors': [
-                ...
-                'auth0_auth.context_processors.auth0',
-            ],
-        },
-    },
-]
-```
-
-Add the following JavaScript snippet to your `extrahead` block where you'd like the login to appear.
-```
-{% block extrahead %}
-<script src="https://cdn.auth0.com/js/lock/11.14/lock.min.js"></script>
-<script type="text/javascript">
-    var lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
-    function signin() {
-        lock.show({
-            callbackURL: '{{ AUTH0_CALLBACK_URL }}',
-            responseType: 'token',
-            authParams: {
-                'scope': '{{ AUTH0_SCOPE }}',
-                'response_mode': 'form_post',
-                'state': '{{ AUTH0_STATE }}'
-            }
-        });
-    }
-</script>
-{% endblock %}
-```
-
-Add a login button to the page.
-```
-<button onclick="window.signin();">Login</button>
-```
 Logging
 -------
 To enable logging add `auth0_auth` to `LOGGING['loggers']` options.
