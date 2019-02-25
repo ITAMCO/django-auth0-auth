@@ -1,12 +1,12 @@
 Django Auth0 Auth
 =================
 
-*Django Auth0 Auth* allows you to authenticate through Auth0.
+*Django Auth0 Auth* allows you to authenticate through Auth0 in Django 2
 
 Installation
 ------------
 
-Run `pip install django-auth0-auth`
+Run `pip install django2-auth0-auth`
 
 Add the `Auth0Backend` to your `AUTHENTICATION_BACKENDS` setting:
 
@@ -30,39 +30,39 @@ urlpatterns = [
 Settings
 --------
 
-###AUTH0_DOMAIN
+### AUTH0_DOMAIN
 
 Auth0 domain.
 
-###AUTH0_CLIENT_ID
+### AUTH0_CLIENT_ID
 
 Auth0 client id.
 
 
-###AUTH0_CLIENT_SECRET
+### AUTH0_CLIENT_SECRET
 
 Auth0 client secret.
 
 
-###AUTH0_SECRET_BASE64_ENCODED
+### AUTH0_SECRET_BASE64_ENCODED
 
 **default:** `False`
 Flag if Auth0 client secret is base64 encoded.
 
 
-###AUTH0_SCOPE
+### AUTH0_SCOPE
 
 **default:** `'openid email'`
 OAuth scope parameter.
 
 
-###AUTH0_RESPONSE_TYPE
+### AUTH0_RESPONSE_TYPE
 
 **default:** `'token'`
 OAuth response type parameter.
 
 
-###AUTH0_USER_CREATION
+### AUTH0_USER_CREATION
 
 **default:** `True`
 Allow creation of new users after successful authentication.
@@ -90,28 +90,31 @@ TEMPLATES = [
 ]
 ```
 
-Add the following JavaScript snippet to your `base.html` below your sites other JavaScript.
+Add the following JavaScript snippet to your `extrahead` block where you'd like the login to appear.
+```
+{% block extrahead %}
+<script src="https://cdn.auth0.com/js/lock/11.14/lock.min.js"></script>
+<script type="text/javascript">
+    var lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
+    function signin() {
+        lock.show({
+            callbackURL: '{{ AUTH0_CALLBACK_URL }}',
+            responseType: 'token',
+            authParams: {
+                'scope': '{{ AUTH0_SCOPE }}',
+                'response_mode': 'form_post',
+                'state': '{{ AUTH0_STATE }}'
+            }
+        });
+    }
+</script>
+{% endblock %}
+```
 
-    <script src="https://cdn.auth0.com/js/lock-9.min.js"></script>
-    <script type="text/javascript">
-        var lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
-        function signin() {
-            lock.show({
-                callbackURL: '{{ AUTH0_CALLBACK_URL }}',
-                responseType: 'token',
-                authParams: {
-                    'scope': '{{ AUTH0_SCOPE }}',
-                    'response_mode': 'form_post',
-                    'state': '{{ AUTH0_STATE }}'
-                }
-            });
-        }
-    </script>
-
-Add a login button to your `base.html`.
-
-    <button onclick="window.signin();">Login</button>
-
+Add a login button to the page.
+```
+<button onclick="window.signin();">Login</button>
+```
 Logging
 -------
 To enable logging add `auth0_auth` to `LOGGING['loggers']` options.

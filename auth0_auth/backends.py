@@ -10,7 +10,7 @@ from .utils import (
     get_login_url,
     get_logout_url,
     is_email_verified_from_token,
-)
+    get_sub_from_token)
 
 try:
     from django.contrib.auth import get_user_model
@@ -50,6 +50,7 @@ class Auth0Backend(object):
             return None
 
         email = get_email_from_token(token=token)
+        sub = get_sub_from_token(token=token)
 
         if email is None:
             return None
@@ -59,15 +60,15 @@ class Auth0Backend(object):
         if not email_verified:
             return None
 
-        users = self.User.objects.filter(email=email)
-        if len(users) == 0:
-            user = self.create_user(email)
-            if user is None:
-                return None
-        elif len(users) == 1:
-            user = users[0]
-        else:
-            return None
+        user_model = get_user_model()
+
+        user, created = user_model._default_manager.update_or_create(**{
+            user_model.USERNAME_FIELD: sub,
+            'defaults': {
+                user_model.EMAIL_FIELD: email
+            }
+        })
+
         if not self.user_can_authenticate(user):
             return None
         user.backend = "{}.{}".format(

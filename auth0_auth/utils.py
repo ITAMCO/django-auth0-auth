@@ -92,3 +92,22 @@ def is_email_verified_from_token(token=None, key=CLIENT_SECRET, audience=CLIENT_
         )
 
     return None
+
+
+def get_sub_from_token(token=None, key=CLIENT_SECRET, audience=CLIENT_ID):
+    try:
+        payload = jwt.decode(
+            token, key=key, algorithms=["HS256", "RS256"], audience=audience, leeway=300
+        )
+        if "sub" in payload:
+            return payload["sub"].replace("|",'.')
+        else:
+            logger.debug(
+                'Could not retrieve sub. Token payload does not contain keys: "sub".'
+            )
+    except jwt.InvalidTokenError as e:
+        logger.debug(
+            "Could not retrieve sub. Token validation error, {}".format(str(e))
+        )
+
+    return None

@@ -1,0 +1,23 @@
+# use glob syntax.
+syntax: glob
+
+*.pyc
+*.swp
+*.orig
+*.DS_Store
+Thumbs.db
+*.log
+*.cache
+*.egg-info
+*.svn
+*.sqlite3
+
+syntax: regexp
+
+build/
+dist/
+django2_auth0_auth.egg-info
+.tox/
+env/
+
+.idea/
